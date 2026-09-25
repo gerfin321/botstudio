@@ -11,7 +11,6 @@ const TELEGRAM_URL = `https://t.me/${TELEGRAM_USERNAME}`;
  */
 const services = {
   bot: {
-    code: "БОТ",
     label: "Telegram-бот",
     basePrice: 500,
     options: {
@@ -37,7 +36,6 @@ const services = {
     }
   },
   miniApp: {
-    code: "MINI APP",
     label: "Telegram Mini App",
     basePrice: 2000,
     options: {
@@ -105,9 +103,7 @@ const elements = {
   quantities: document.querySelector("[data-quantity-list]"),
   miniInfo: document.querySelector("[data-mini-info]"),
   total: document.querySelector("[data-total-price]"),
-  totalInline: document.querySelector("[data-total-inline]"),
-  breakdown: document.querySelector("[data-breakdown]"),
-  serviceCode: document.querySelector("[data-service-code]")
+  breakdown: document.querySelector("[data-breakdown]")
 };
 
 let shownTotal = 0;
@@ -189,7 +185,6 @@ function calculateEstimate() {
 
 function renderEstimate() {
   const { total, lines } = calculateEstimate();
-  elements.serviceCode.textContent = getCurrentService().code;
   elements.breakdown.innerHTML = lines
     .map((line) => `
       <div class="breakdown-row${line.base ? " is-base" : ""}">
@@ -197,7 +192,6 @@ function renderEstimate() {
         <span>${line.base ? "" : "+"}${formatPrice(line.price)}</span>
       </div>`)
     .join("");
-  elements.totalInline.textContent = formatPrice(total);
   elements.total.textContent = formatPrice(total);
 }
 
