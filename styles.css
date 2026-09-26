@@ -510,3 +510,122 @@ body::before { display: none; }
   .process-line li { grid-template-columns: 1fr; }
   .process-line p { grid-column: 1; }
 }
+
+/* Motion follows the site's blue, geometric visual language. */
+.scroll-progress {
+  position: fixed; inset: 0 0 auto; height: 3px; z-index: 30;
+  background: linear-gradient(90deg, var(--accent), #72c8f6, var(--accent));
+  box-shadow: 0 0 12px rgba(var(--accent-rgb), .5);
+  transform: scaleX(0); transform-origin: left; pointer-events: none;
+}
+.site-header { transition: box-shadow .35s ease, background .35s ease; }
+.site-header.is-scrolled { background: rgba(245,249,254,.88); box-shadow: 0 8px 28px rgba(38,54,87,.08); }
+.hero { position: relative; isolation: isolate; }
+.hero::before, .hero::after {
+  content: ""; position: absolute; z-index: -1; pointer-events: none;
+  border-radius: 50%; filter: blur(35px);
+}
+.hero::before {
+  width: min(70vw, 620px); height: 360px; top: 5%; right: -5%;
+  background: radial-gradient(ellipse, rgba(117,185,244,.2), rgba(167,208,255,.08) 50%, transparent 72%);
+  animation: ambient-drift 13s ease-in-out infinite alternate;
+}
+.hero::after {
+  width: min(55vw, 420px); height: 280px; left: -5%; bottom: 2%;
+  background: radial-gradient(ellipse, rgba(124,209,228,.16), transparent 70%);
+  animation: ambient-drift 17s ease-in-out -6s infinite alternate-reverse;
+}
+.hero h1 em, .contacts h2 em {
+  background: linear-gradient(110deg, var(--accent) 20%, #58a6da 40%, var(--accent) 60%);
+  background-size: 240% 100%; background-clip: text; -webkit-background-clip: text;
+  color: transparent; animation: text-shimmer 9s ease-in-out infinite;
+}
+.side-art-orbit-left { animation: orbit-float-left 18s ease-in-out infinite; }
+.side-art-orbit-right { animation: orbit-float-right 22s ease-in-out -7s infinite; }
+.side-art-dot { transform-box: fill-box; transform-origin: center; animation: dot-pulse 4s ease-in-out infinite; }
+.side-art-dot:nth-of-type(2) { animation-delay: -2s; }
+.side-art-accent { stroke-dasharray: 28 12; animation: orbit-trace 12s linear infinite; }
+.brand-avatar { transition: box-shadow .35s ease, transform .35s ease; }
+.brand:hover .brand-avatar { transform: rotate(-7deg) scale(1.06); box-shadow: 0 0 0 4px rgba(var(--accent-rgb), .18); }
+.brand-avatar img { transition: transform .5s ease; }
+.brand:hover img { transform: scale(1.12); }
+
+.button, .nav-cta, .stepper button { position: relative; overflow: hidden; isolation: isolate; }
+.button {
+  transition: background .25s ease, color .25s ease, transform .3s cubic-bezier(.22,1,.36,1), box-shadow .3s ease;
+}
+.button:hover { transform: translateY(-3px); box-shadow: 0 8px 22px rgba(40,104,174,.18); }
+.button:active, .nav-cta:active { transform: translateY(0) scale(.98); }
+.button > span:not(.button-ripple), .nav-cta > span:not(.button-ripple) { transition: transform .3s ease; }
+.button:hover > span:not(.button-ripple), .nav-cta:hover > span:not(.button-ripple) { transform: translate(3px, -2px); }
+.hero-actions .button:first-child:hover > span:not(.button-ripple) { transform: translateY(4px); }
+.button-accent::before {
+  content: ""; position: absolute; inset: -50% auto -50% -70%; width: 45%; pointer-events: none;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.24), transparent);
+  transform: skewX(-22deg); transition: left .65s ease;
+}
+.button-accent:hover::before { left: 135%; }
+.button-ripple {
+  position: absolute; pointer-events: none; border-radius: 50%;
+  background: currentColor; opacity: 0; animation: ripple-out .65s ease-out forwards;
+}
+.service-item, .contact-action, .estimate, .format-option { position: relative; isolation: isolate; }
+.service-item::after, .contact-action::after, .estimate::after, .format-option::after {
+  content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none; opacity: 0;
+  background: radial-gradient(260px circle at var(--pointer-x, 50%) var(--pointer-y, 50%), rgba(var(--accent-rgb), .14), transparent 75%);
+  transition: opacity .4s ease;
+}
+.service-item:hover::after, .contact-action:hover::after, .estimate:hover::after, .format-option:hover::after { opacity: 1; }
+.service-item { transition: padding .35s ease, background .35s ease; }
+.service-item h3 { transition: color .3s ease, transform .35s ease; }
+.service-item:hover h3 { color: var(--accent); transform: translateX(5px); }
+.contact-action { transition: box-shadow .35s ease, border-color .35s ease; }
+.contact-action:hover { border-color: var(--accent); box-shadow: 10px 10px 0 rgba(38,54,87,.07), 0 12px 35px rgba(40,104,174,.08); }
+.telegram-handle { transition: color .3s ease, transform .3s ease; }
+.telegram-handle:hover { transform: translateX(5px); }
+.format-option:has(input:checked) { animation: selection-pop .38s cubic-bezier(.22,1,.36,1); }
+.check-box { transition: background .2s ease, border-color .2s ease, box-shadow .25s ease; }
+.option-row:has(input:checked) .check-box { animation: check-pop .35s ease; box-shadow: 0 0 0 3px rgba(var(--accent-rgb), .12); }
+.option-row:has(input:checked) .check-box::after { animation: check-draw .25s ease both; }
+.stepper button { transition: background .2s ease, color .2s ease, transform .2s ease; }
+.stepper button:active:not(:disabled) { transform: scale(.88); }
+.stepper output, [data-price-counter] { display: inline-block; font-variant-numeric: tabular-nums; }
+.tooltip-text { transition: opacity .2s ease, transform .2s ease, visibility .2s ease; }
+.process-line li { transition: background .3s ease, padding .3s ease; }
+.process-line li:hover { background: var(--surface-2); padding-inline: .8rem; }
+.reveal.reveal-pending { opacity: 0; transform: translateY(30px); }
+.reveal.is-revealing { animation-duration: .85s; }
+@keyframes reveal-in {
+  from { opacity: 0; transform: translateY(30px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes ambient-drift { from { transform: translate(-12px, 8px) scale(.95); } to { transform: translate(24px, -18px) scale(1.12); } }
+@keyframes text-shimmer { 0%, 100% { background-position: 100% 50%; } 50% { background-position: 0% 50%; } }
+@keyframes orbit-float-left { 0%, 100% { transform: translateY(0) rotate(-3deg); } 50% { transform: translateY(-24px) rotate(4deg); } }
+@keyframes orbit-float-right { 0%, 100% { transform: translateY(0) rotate(3deg); } 50% { transform: translateY(20px) rotate(-4deg); } }
+@keyframes dot-pulse { 0%, 100% { opacity: .5; transform: scale(.85); } 50% { opacity: 1; transform: scale(1.4); } }
+@keyframes orbit-trace { to { stroke-dashoffset: -240; } }
+@keyframes ripple-out { from { transform: scale(0); opacity: .22; } to { transform: scale(1); opacity: 0; } }
+@keyframes selection-pop { from { box-shadow: inset 3px 0 0 var(--accent), 0 0 0 4px rgba(var(--accent-rgb), .18); } to { box-shadow: inset 3px 0 0 var(--accent), 0 0 0 0 transparent; } }
+@keyframes check-pop { 50% { transform: scale(1.2); } }
+@keyframes check-draw { from { opacity: 0; transform: rotate(45deg) scale(.4); } to { opacity: 1; transform: rotate(45deg) scale(1); } }
+@media (hover: none) {
+  .service-item::after, .contact-action::after, .estimate::after, .format-option::after { display: none; }
+}
+@media (max-width: 670px) {
+  .hero::before, .hero::after { filter: blur(20px); }
+  .option-row, .quantity-row { position: relative; }
+  .option-row .info-tooltip, .quantity-row .info-tooltip, .format-option .info-tooltip { position: static; }
+  .tooltip-text { left: 0; width: min(230px, 100%); transform: translateY(.25rem); }
+  .info-tooltip:hover .tooltip-text, .info-tooltip:focus .tooltip-text { transform: translateY(0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .reveal.reveal-pending { opacity: 1; transform: none; }
+  .hero::before, .hero::after, .side-art-orbit, .side-art-dot, .side-art-accent,
+  .hero h1 em, .contacts h2 em, .format-option, .check-box, .check-box::after { animation: none !important; }
+  .button:hover, .button:active, .nav-cta:active, .brand:hover .brand-avatar, .brand:hover img,
+  .service-item:hover h3, .telegram-handle:hover, .stepper button:active:not(:disabled),
+  .button:hover > span:not(.button-ripple), .nav-cta:hover > span:not(.button-ripple),
+  .hero-actions .button:first-child:hover > span:not(.button-ripple) { transform: none; }
+  .button-accent::before, .button-ripple { display: none; }
+}

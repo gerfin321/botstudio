@@ -106,6 +106,41 @@ const elements = {
   breakdown: document.querySelector("[data-breakdown]")
 };
 
+const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+let displayedTotal = null;
+let totalFrame = 0;
+const runningEffects = new WeakMap();
+
+function animateElement(element, keyframes, options = {}) {
+  if (reducedMotion.matches || !element?.animate) return;
+  runningEffects.get(element)?.cancel();
+  const animation = element.animate(keyframes, { duration: 420, easing: "cubic-bezier(.22,1,.36,1)", ...options });
+  runningEffects.set(element, animation);
+}
+
+function animateTotal(total) {
+  cancelAnimationFrame(totalFrame);
+  // Assistive technology receives the final value once, outside the visual counter.
+  elements.total.innerHTML = `<span aria-hidden="true" data-price-counter></span><span class="sr-only">${formatPrice(total)}</span>`;
+  const counter = elements.total.querySelector("[data-price-counter]");
+  const from = displayedTotal ?? total;
+  const start = performance.now();
+  const tick = (now) => {
+    const progress = reducedMotion.matches || from === total ? 1 : Math.min((now - start) / 480, 1);
+    displayedTotal = Math.round(from + (total - from) * (1 - (1 - progress) ** 3));
+    counter.textContent = formatPrice(displayedTotal);
+    if (progress < 1) totalFrame = requestAnimationFrame(tick);
+  };
+  tick(start);
+  if (from !== total) {
+    animateElement(elements.total, [
+      { transform: "translateY(0)", filter: "brightness(1)" },
+      { transform: "translateY(-4px)", filter: "brightness(1.3)", offset: .35 },
+      { transform: "translateY(0)", filter: "brightness(1)" }
+    ]);
+  }
+}
+
 function formatPrice(value) {
   const safeValue = Number.isFinite(value) ? value : 0;
   return `${new Intl.NumberFormat("uk-UA").format(safeValue)} грн`;
@@ -182,6 +217,7 @@ function calculateEstimate() {
 
 function renderEstimate() {
   const { total, lines } = calculateEstimate();
+  const previousLabels = new Set([...elements.breakdown.querySelectorAll(".breakdown-row > span:first-child")].map((element) => element.textContent));
   elements.breakdown.innerHTML = lines
     .map((line) => `
       <div class="breakdown-row${line.base ? " is-base" : ""}">
@@ -189,7 +225,12 @@ function renderEstimate() {
         <span>${line.base ? "" : "+"}${formatPrice(line.price)}</span>
       </div>`)
     .join("");
-  elements.total.textContent = formatPrice(total);
+  animateTotal(total);
+  elements.breakdown.querySelectorAll(".breakdown-row").forEach((row) => {
+    if (!previousLabels.has(row.firstElementChild.textContent)) {
+      animateElement(row, [{ opacity: 0, transform: "translateX(-12px)" }, { opacity: 1, transform: "translateX(0)" }]);
+    }
+  });
 }
 
 function updateCalculator() {
@@ -205,6 +246,7 @@ function setFormat(format) {
     option.classList.toggle("is-selected", option.dataset.formatOption === format);
   });
   updateCalculator();
+  animateElement(elements.options, [{ opacity: .35, transform: "translateY(10px)" }, { opacity: 1, transform: "translateY(0)" }]);
 }
 
 function setTelegramLinks() {
@@ -243,6 +285,10 @@ function setupCalculatorListeners() {
     calculatorState.quantities[key] = Math.max(0, Math.min(config.max, nextValue));
     renderQuantities();
     renderEstimate();
+    const replacement = elements.quantities.querySelector(`button[data-quantity="${key}"][data-change="${change}"]`);
+    const activeButton = replacement.disabled ? elements.quantities.querySelector(`button[data-quantity="${key}"]:not(:disabled)`) : replacement;
+    activeButton?.focus({ preventScroll: true });
+    animateElement(replacement.parentElement.querySelector("output"), [{ transform: "translateY(-5px)", opacity: .3 }, { transform: "translateY(0)", opacity: 1 }]);
   });
 }
 
@@ -280,6 +326,7 @@ function setupRevealAnimations() {
     const visibleEntries = entries.filter((entry) => entry.isIntersecting);
     visibleEntries.forEach((entry, index) => {
       const element = entry.target;
+      element.classList.remove("reveal-pending");
       // Keep simultaneous entrances quick, even when a large section comes into view.
       element.style.setProperty("--reveal-delay", `${Math.min(index, 3) * 90}ms`);
       element.classList.add("is-revealing");
@@ -288,7 +335,64 @@ function setupRevealAnimations() {
     });
   }, { threshold: 0, rootMargin: "0px 0px -24px 0px" });
 
-  document.querySelectorAll(".reveal").forEach((element) => observer.observe(element));
+  document.querySelectorAll(".reveal").forEach((element) => {
+    element.classList.add("reveal-pending");
+    observer.observe(element);
+  });
+  reducedMotion.addEventListener("change", () => {
+    if (!reducedMotion.matches) return;
+    document.querySelectorAll(".reveal-pending").forEach((element) => element.classList.remove("reveal-pending"));
+    observer.disconnect();
+  });
+}
+
+function setupMotionEffects() {
+  const progress = document.querySelector(".scroll-progress");
+  const header = document.querySelector("[data-header]");
+  let scrollFrame = 0;
+  const updateScroll = () => {
+    const distance = document.documentElement.scrollHeight - window.innerHeight;
+    progress.style.transform = `scaleX(${distance > 0 ? window.scrollY / distance : 0})`;
+    header.classList.toggle("is-scrolled", window.scrollY > 24);
+    scrollFrame = 0;
+  };
+  window.addEventListener("scroll", () => {
+    if (!scrollFrame) scrollFrame = requestAnimationFrame(updateScroll);
+  }, { passive: true });
+  window.addEventListener("resize", updateScroll);
+  if ("ResizeObserver" in window) new ResizeObserver(updateScroll).observe(document.body);
+  updateScroll();
+
+  const finePointer = window.matchMedia("(hover: hover) and (pointer: fine)");
+  document.querySelectorAll(".service-item, .contact-action, .estimate, .format-option").forEach((panel) => {
+    let pointerFrame = 0;
+    panel.addEventListener("pointermove", (event) => {
+      if (!finePointer.matches || reducedMotion.matches) return;
+      cancelAnimationFrame(pointerFrame);
+      pointerFrame = requestAnimationFrame(() => {
+        const rect = panel.getBoundingClientRect();
+        panel.style.setProperty("--pointer-x", `${event.clientX - rect.left}px`);
+        panel.style.setProperty("--pointer-y", `${event.clientY - rect.top}px`);
+      });
+    });
+    panel.addEventListener("pointerleave", () => cancelAnimationFrame(pointerFrame));
+  });
+
+  document.addEventListener("click", (event) => {
+    const button = event.target.closest(".button, .nav-cta, .stepper button");
+    if (!button || button.disabled || reducedMotion.matches) return;
+    const rect = button.getBoundingClientRect();
+    const ripple = document.createElement("span");
+    ripple.className = "button-ripple";
+    ripple.setAttribute("aria-hidden", "true");
+    const size = Math.max(rect.width, rect.height) * 2;
+    ripple.style.width = ripple.style.height = `${size}px`;
+    ripple.style.left = `${(event.detail ? event.clientX - rect.left : rect.width / 2) - size / 2}px`;
+    ripple.style.top = `${(event.detail ? event.clientY - rect.top : rect.height / 2) - size / 2}px`;
+    button.append(ripple);
+    ripple.addEventListener("animationend", () => ripple.remove(), { once: true });
+    setTimeout(() => ripple.remove(), 800);
+  });
 }
 
 function init() {
@@ -300,6 +404,7 @@ function init() {
   setupNavigation();
   updateCalculator();
   setupRevealAnimations();
+  setupMotionEffects();
 }
 
 init();
