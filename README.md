@@ -1,4 +1,4 @@
-# MODO//BOT — сайт для GitHub Pages
+# gfn bots — сайт для GitHub Pages
 
 Статичний односторінковий сайт студії розробки Telegram-ботів і Telegram Mini Apps. Не потребує збірки, сервера або npm-залежностей.
 
@@ -34,7 +34,7 @@ const TELEGRAM_USERNAME = "gerfin228";
 
 ### Назва студії
 
-Назва `MODO//BOT` вказана в `index.html`: у `<title>`, Open Graph-метаданих, логотипі header і footer. Замініть її на свою назву в цих місцях.
+Назва `gfn bots` вказана в `index.html`: у `<title>`, Open Graph-метаданих, логотипі header і footer. Замініть її на свою назву в цих місцях.
 
 ### Ціни калькулятора
 

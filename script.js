@@ -106,9 +106,6 @@ const elements = {
   breakdown: document.querySelector("[data-breakdown]")
 };
 
-let shownTotal = 0;
-let animationFrame = null;
-
 function formatPrice(value) {
   const safeValue = Number.isFinite(value) ? value : 0;
   return `${new Intl.NumberFormat("uk-UA").format(safeValue)} грн`;
@@ -276,6 +273,24 @@ function setupNavigation() {
   targets.forEach((target) => observer.observe(target));
 }
 
+function setupRevealAnimations() {
+  if (window.matchMedia("(prefers-reduced-motion: reduce)").matches || !("IntersectionObserver" in window)) return;
+
+  const observer = new IntersectionObserver((entries) => {
+    const visibleEntries = entries.filter((entry) => entry.isIntersecting);
+    visibleEntries.forEach((entry, index) => {
+      const element = entry.target;
+      // Keep simultaneous entrances quick, even when a large section comes into view.
+      element.style.setProperty("--reveal-delay", `${Math.min(index, 3) * 90}ms`);
+      element.classList.add("is-revealing");
+      element.addEventListener("animationend", () => element.classList.remove("is-revealing"), { once: true });
+      observer.unobserve(element);
+    });
+  }, { threshold: 0, rootMargin: "0px 0px -24px 0px" });
+
+  document.querySelectorAll(".reveal").forEach((element) => observer.observe(element));
+}
+
 function init() {
   document.querySelectorAll("[data-year]").forEach((element) => {
     element.textContent = new Date().getFullYear();
@@ -284,6 +299,7 @@ function init() {
   setupCalculatorListeners();
   setupNavigation();
   updateCalculator();
+  setupRevealAnimations();
 }
 
 init();
