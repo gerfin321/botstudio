@@ -152,6 +152,7 @@ fieldset { min-width: 0; margin: 0; padding: 0; border: 0; }
 .stepper output { min-width: 30px; text-align: center; font-size: .79rem; }
 .quantity-price { min-width: 68px; color: var(--accent); font-family: var(--mono); font-size: .74rem; text-align: right; white-space: nowrap; }
 .mini-info { display: flex; gap: .7rem; margin-top: 1.2rem; padding: .75rem; border-left: 2px solid var(--accent); background: rgba(120,187,237,.07); color: var(--muted); font-size: .78rem; }
+.mini-info[hidden] { display: none; }
 .mini-info-mark { display: grid; width: 18px; height: 18px; flex: 0 0 auto; place-items: center; border: 1px solid var(--accent); color: var(--accent); font-family: var(--mono); font-size: .7rem; }
 
 .estimate { position: sticky; top: 6.1rem; padding: 1rem; clip-path: var(--cut); border: 1px solid var(--line-strong); background: linear-gradient(145deg, rgba(120,187,237,.11), transparent 40%), var(--surface); }

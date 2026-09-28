@@ -38,6 +38,7 @@ const services = {
   miniApp: {
     label: "Telegram Mini App",
     basePrice: 2000,
+    note: "У базову ціну Mini App уже входять до 3 основних сторінок.",
     options: {
       database: { label: "База даних", price: 400 },
       profile: { label: "Особистий кабінет та профіль", price: 400 },
@@ -63,13 +64,58 @@ const services = {
       languages: { label: "Додаткові мови", singular: "мова", price: 300, max: 20 },
       pages: { label: "Додаткові сторінки", singular: "сторінка", price: 250, max: 20 }
     }
+  },
+  website: {
+    label: "Сайт",
+    basePrice: 1500,
+    note: "У базову ціну сайту входять адаптивний інтерфейс і до 3 основних сторінок.",
+    options: {
+      database: { label: "База даних", price: 400 },
+      profile: { label: "Особистий кабінет та профіль", price: 400 },
+      catalog: { label: "Каталог товарів та послуг", price: 500 },
+      cart: { label: "Кошик та оформлення замовлення", price: 600 },
+      payment: { label: "Онлайн-оплата", price: 600 },
+      admin: { label: "Адмін-панель", price: 700 },
+      forms: { label: "Анкети та форми", price: 300 },
+      promo: { label: "Промокоди та знижки", price: 350 },
+      media: { label: "Робота з файлами, фото та відео", price: 250 },
+      ai: { label: "Інтеграція AI", price: 700 },
+      hosting: { label: "Налаштування хостингу", price: 300 },
+      seo: { label: "Базове SEO-налаштування", price: 300 },
+      charts: { label: "Графіки та статистика", price: 300 },
+      filters: { label: "Складні фільтри й пошук", price: 300 },
+      interactions: { label: "Нестандартні анімації та інтерактив", price: 400 }
+    },
+    quantities: {
+      api: { label: "Сторонні API", singular: "API", price: 500, max: 20 },
+      languages: { label: "Додаткові мови", singular: "мова", price: 300, max: 20 },
+      pages: { label: "Додаткові сторінки", singular: "сторінка", price: 250, max: 20 }
+    }
+  },
+  googleScript: {
+    label: "Google Apps Script",
+    basePrice: 700,
+    note: "Базова ціна включає один простий сценарій автоматизації з однією Google Таблицею.",
+    options: {
+      forms: { label: "Інтеграція з Google Формами", price: 250 },
+      email: { label: "Email-сповіщення", price: 250 },
+      schedule: { label: "Запуск за розкладом", price: 250 },
+      documents: { label: "Створення документів і PDF", price: 350 },
+      reports: { label: "Звіти та зведення даних", price: 300 },
+      approvals: { label: "Погодження заявок", price: 350 },
+      ai: { label: "Інтеграція AI", price: 700 }
+    },
+    quantities: {
+      api: { label: "Сторонні API", singular: "API", price: 500, max: 20 },
+      workflows: { label: "Додаткові сценарії", singular: "сценарій", price: 300, max: 20 }
+    }
   }
 };
 
 const calculatorState = {
   format: "bot",
   selected: new Set(),
-  quantities: { api: 0, languages: 0, pages: 0 }
+  quantities: { api: 0, languages: 0, pages: 0, workflows: 0 }
 };
 
 const optionHelp = {
@@ -90,18 +136,26 @@ const optionHelp = {
   hosting: "Розгортає проєкт і виконує базове налаштування середовища.",
   charts: "Показує показники та динаміку у вигляді графіків.",
   filters: "Дозволяє відбирати дані за кількома умовами або параметрами.",
-  interactions: "Додає нетипову поведінку та анімації елементів інтерфейсу."
+  interactions: "Додає нетипову поведінку та анімації елементів інтерфейсу.",
+  seo: "Налаштовує заголовки й описи сторінок та готує сайт до індексації пошуковими системами.",
+  email: "Надсилає автоматичні листи за подією або умовою в даних.",
+  schedule: "Запускає сценарій автоматично в заданий час або з певною періодичністю.",
+  documents: "Формує документи або PDF за шаблоном на основі даних Google Workspace.",
+  reports: "Збирає дані з таблиць у підсумкові звіти.",
+  approvals: "Передає заявку на погодження та відстежує її статус."
 };
 
 const quantityHelp = {
   api: "Кожен зовнішній API — окреме підключення до стороннього сервісу.",
   languages: "Додає ще одну локалізацію до інтерфейсу та сценаріїв.",
-  pages: "Понад три основні сторінки, що вже входять у Mini App."
+  pages: "Додає сторінки понад ті, що входять у базовий пакет.",
+  workflows: "Кожен додатковий сценарій автоматизує окрему задачу або процес."
 };
 const elements = {
   options: document.querySelector("[data-option-list]"),
   quantities: document.querySelector("[data-quantity-list]"),
   miniInfo: document.querySelector("[data-mini-info]"),
+  serviceNote: document.querySelector("[data-service-note]"),
   total: document.querySelector("[data-total-price]"),
   breakdown: document.querySelector("[data-breakdown]")
 };
@@ -187,7 +241,9 @@ function renderQuantities() {
         </div>`;
     })
     .join("");
-  elements.miniInfo.hidden = calculatorState.format !== "miniApp";
+  const note = service.note || "";
+  elements.serviceNote.textContent = note;
+  elements.miniInfo.hidden = !note;
 }
 
 function calculateEstimate() {
@@ -247,6 +303,13 @@ function setFormat(format) {
   });
   updateCalculator();
   animateElement(elements.options, [{ opacity: .35, transform: "translateY(10px)" }, { opacity: 1, transform: "translateY(0)" }]);
+}
+
+function setFormatPrices() {
+  document.querySelectorAll("[data-format-option]").forEach((option) => {
+    const service = services[option.dataset.formatOption];
+    if (service) option.querySelector(".format-price").textContent = `від ${formatPrice(service.basePrice)}`;
+  });
 }
 
 function setTelegramLinks() {
@@ -400,6 +463,7 @@ function init() {
     element.textContent = new Date().getFullYear();
   });
   setTelegramLinks();
+  setFormatPrices();
   setupCalculatorListeners();
   setupNavigation();
   updateCalculator();
